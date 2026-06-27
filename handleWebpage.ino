@@ -46,7 +46,7 @@ void HandleWebpage::handleSaveData()
 {
   String jsonSaveData = _webServer->arg("plain");
   Serial.printf("handleSaveData: %s\n", jsonSaveData.c_str());
-  File file = SD.open(CONFIG_FILE_NAME, (sdfat::O_WRONLY | sdfat::O_CREAT));
+  File file = SD.open(CONFIG_FILE_NAME,  (O_WRONLY | O_CREAT));
   file.write(jsonSaveData.c_str());
   file.close();
 }

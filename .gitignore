@@ -1,3 +1,8 @@
 /build
 .vscode/arduino.json
 .vscode/c_cpp_properties.json
+EEP
+esp_core_info
+BIN*
+tools
+*.eep

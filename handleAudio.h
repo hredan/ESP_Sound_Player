@@ -6,7 +6,7 @@
 
 #include "AudioFileSourceSD.h"
 #include "AudioGeneratorMP3.h"
-#include <i2s.h>
+//#include <i2s.h>
 #include "AudioOutputI2S.h"
 
 
