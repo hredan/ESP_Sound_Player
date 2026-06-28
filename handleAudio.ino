@@ -1,12 +1,47 @@
 
 #include "handleAudio.h"
 
+ReactiveAudioOutputI2S::ReactiveAudioOutputI2S() : _level(0.0f)
+{
+}
+
+bool ReactiveAudioOutputI2S::ConsumeSample(int16_t sample[2])
+{
+    int32_t left = sample[0];
+    int32_t right = sample[1];
+    float peak = abs(left);
+    if (abs(right) > peak)
+    {
+        peak = abs(right);
+    }
+    float normalized = peak / 32768.0f;
+
+    // Fast attack and slower release for stable visualization.
+    const float attack = 0.25f;
+    const float release = 0.04f;
+    if (normalized > _level)
+    {
+        _level += (normalized - _level) * attack;
+    }
+    else
+    {
+        _level += (normalized - _level) * release;
+    }
+
+    return AudioOutputI2S::ConsumeSample(sample);
+}
+
+float ReactiveAudioOutputI2S::getLevel() const
+{
+    return _level;
+}
+
 HandleAudio::HandleAudio()
 {
     _soundIsPlaying = false;
     audioLogger = &Serial;
    
-    _out = new AudioOutputI2S();
+    _out = new ReactiveAudioOutputI2S();
     _audioGen = new AudioGeneratorMP3();
     _source = new AudioFileSourceSD();
 };
@@ -17,7 +52,16 @@ bool HandleAudio::_soundIsPlaying = false;
 
 AudioGeneratorMP3 * HandleAudio::_audioGen = nullptr;
 AudioFileSourceSD * HandleAudio::_source = nullptr;
-AudioOutputI2S * HandleAudio::_out = nullptr;
+ReactiveAudioOutputI2S * HandleAudio::_out = nullptr;
+
+float HandleAudio::getCurrentLevel()
+{
+    if (_out == nullptr)
+    {
+        return 0.0f;
+    }
+    return _out->getLevel();
+}
 
 void HandleAudio::setMaxGain(float maxGain)
 {
