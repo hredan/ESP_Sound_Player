@@ -1,13 +1,19 @@
 
 
-#include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
+#endif
 #include "handleAudio.h"
 #include "handleWebpage.h"
 #include "LittleFS.h"
 #include <SD.h>
 
 // You may need a fast SD card. Set this as high as it will work (40MHz max).
-#define SPI_SPEED SD_SCK_MHZ(35)
+#ifdef ESP8266
+    #define SPI_SPEED SD_SCK_MHZ(35)
+#endif
 
 //declaration of needed instances
 HandleAudio *handleAudio;
@@ -27,10 +33,15 @@ void setup()
     if (LittleFS.begin())
     {
         Serial.print("LittleFS started successfully\n");
-        FSInfo fs_info;
-        LittleFS.info(fs_info);
-        Serial.printf("FS total Bytes %d\n", fs_info.totalBytes);
-        Serial.printf("FS used Bytes %d\n", fs_info.usedBytes);
+        #ifdef ESP32
+            Serial.printf("FS total Bytes %d\n", LittleFS.totalBytes());
+            Serial.printf("FS used Bytes %d\n", LittleFS.usedBytes());
+        #else
+            FSInfo fs_info;
+            LittleFS.info(fs_info);
+            Serial.printf("FS total Bytes %d\n", fs_info.totalBytes);
+            Serial.printf("FS used Bytes %d\n", fs_info.usedBytes);
+        #endif
     }
     else
     {
@@ -38,7 +49,12 @@ void setup()
     }
 
     Serial.print("Initializing SD card...");
-    if (!SD.begin(16, SPI_SPEED))
+    
+    #ifdef ESP8266
+        if (!SD.begin(16, SPI_SPEED))
+    #else
+        if (!SD.begin(16))
+    #endif
     {
         Serial.println("initialization failed!");
         filelist = "[]";
