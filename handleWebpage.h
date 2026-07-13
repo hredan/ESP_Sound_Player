@@ -30,7 +30,7 @@
 #include <SD.h>
 
 const byte DNS_PORT = 53;
-IPAddress apIP(172, 217, 28, 1);
+IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
 
 class HandleWebpage

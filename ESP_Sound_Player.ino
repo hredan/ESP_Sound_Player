@@ -53,7 +53,7 @@ void setup()
     #ifdef ESP8266
         if (!SD.begin(16, SPI_SPEED))
     #else
-        if (!SD.begin(16))
+        if (!SD.begin())
     #endif
     {
         Serial.println("initialization failed!");
@@ -102,16 +102,27 @@ void setup()
     handleWebpage->setCallBackPlaySound(handleAudio->playSound);
     handleWebpage->setCallBackStopSound(handleAudio->stopSound);
     handleWebpage->setCallBackSetMaxGain(handleAudio->setMaxGain);
-    
-    handleWebpage->setupHandleWebpage();
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("ESPSoundPlayer");
+
+    bool apConfigOk = WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    bool apStartOk = WiFi.softAP("ESPSoundPlayerESP32");
+
+    Serial.printf("softAPConfig: %s\n", apConfigOk ? "OK" : "FAILED");
+    Serial.printf("softAP start: %s\n", apStartOk ? "OK" : "FAILED");
+    if (apStartOk)
+    {
+        Serial.print("AP IP: ");
+        Serial.println(WiFi.softAPIP());
+    }
 
     // if DNSServer is started with "*" for domain name, it will reply with
     // provided IP to all DNS request
-    dnsServer.start(DNS_PORT, "*", apIP);
+    if (!dnsServer.start(DNS_PORT, "*", apIP))
+    {
+        Serial.println("Warning: DNS server failed to start");
+    }
+    handleWebpage->setupHandleWebpage();
 }
 
 void loop()
@@ -132,4 +143,6 @@ void loop()
         }
         
     }
+    // Serial.println("Loop...");
+    // delay(3000);
 }

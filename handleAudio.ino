@@ -7,6 +7,10 @@ HandleAudio::HandleAudio()
     audioLogger = &Serial;
    
     _out = new AudioOutputI2S();
+    // #ifdef ESP32
+    // Serial.printf("AudioOutputI2S.SetPinout %d\n", _out->SetPinout(1, 0, 2));
+    // #endif
+
     _audioGen = new AudioGeneratorMP3();
     _source = new AudioFileSourceSD();
 };
@@ -51,6 +55,7 @@ void HandleAudio::stopSound()
 void HandleAudio::playSound(String filename, int volume)
 {
     Serial.printf("start playSound -> filename: %s, volume: %d\n", filename.c_str(), volume);
+    filename = "/" + filename;
     if(SD.exists(filename))
     {
         if(_soundIsPlaying)
@@ -72,5 +77,9 @@ void HandleAudio::playSound(String filename, int volume)
         {
             _soundIsPlaying = true;
         }
+    }
+    else
+    {
+        Serial.printf("Error file not found playSound -> filename: %s\n", filename.c_str());
     }
 }
