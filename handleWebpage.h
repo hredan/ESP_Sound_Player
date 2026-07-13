@@ -22,11 +22,15 @@
 #define HANDLEWEBPAGE_H_INCLUDED
 
 #include <DNSServer.h>
-#include <ESP8266WebServer.h>
+#ifdef ESP32
+    #include <WebServer.h>
+#else
+    #include <ESP8266WebServer.h>
+#endif
 #include <SD.h>
 
 const byte DNS_PORT = 53;
-IPAddress apIP(172, 217, 28, 1);
+IPAddress apIP(192, 168, 4, 1);
 DNSServer dnsServer;
 
 class HandleWebpage
@@ -63,6 +67,11 @@ class HandleWebpage
         void handleSaveData();
 
         bool loadFromLittleFS(String path);
-        static ESP8266WebServer *_webServer;   
+        
+        #ifdef ESP32
+            static WebServer *_webServer;
+        #else
+            static ESP8266WebServer *_webServer;
+        #endif
 };
 #endif // HANDLEWEBPAGE_H_INCLUDED

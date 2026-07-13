@@ -9,7 +9,8 @@ export INPUT_CORE="esp8266"
 export INPUT_BOARD="d1_mini"
 export INPUT_CORE_VERSION=""
 export INPUT_CPU_F="80"
-export INPUT_LIBS="ESP8266Audio,SD,'Adafruit NeoPixel'"
+export INPUT_LIBS="ESP8266Audio,'Adafruit NeoPixel'"
+export INPUT_FLASH="4M1M"
 
 URL=$(git remote get-url origin)
 HASH=$(git rev-parse HEAD)

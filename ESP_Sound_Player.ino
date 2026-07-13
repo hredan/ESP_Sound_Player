@@ -1,6 +1,10 @@
 
 
-#include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
+#ifdef ESP32
+    #include <WiFi.h>
+#else
+    #include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
+#endif
 #include "handleAudio.h"
 #include "handleLedRing.h"
 #include "handleWebpage.h"
@@ -9,7 +13,9 @@
 #include "Config.h"
 
 // You may need a fast SD card. Set this as high as it will work (40MHz max).
-#define SPI_SPEED SD_SCK_MHZ(35)
+#ifdef ESP8266
+    #define SPI_SPEED SD_SCK_MHZ(35)
+#endif
 
 //declaration of needed instances
 HandleAudio *handleAudio;
@@ -30,10 +36,15 @@ void setup()
     if (LittleFS.begin())
     {
         Serial.print("LittleFS started successfully\n");
-        FSInfo fs_info;
-        LittleFS.info(fs_info);
-        Serial.printf("FS total Bytes %d\n", fs_info.totalBytes);
-        Serial.printf("FS used Bytes %d\n", fs_info.usedBytes);
+        #ifdef ESP32
+            Serial.printf("FS total Bytes %d\n", LittleFS.totalBytes());
+            Serial.printf("FS used Bytes %d\n", LittleFS.usedBytes());
+        #else
+            FSInfo fs_info;
+            LittleFS.info(fs_info);
+            Serial.printf("FS total Bytes %d\n", fs_info.totalBytes);
+            Serial.printf("FS used Bytes %d\n", fs_info.usedBytes);
+        #endif
     }
     else
     {
@@ -41,7 +52,12 @@ void setup()
     }
 
     Serial.print("Initializing SD card...");
-    if (!SD.begin(16, SPI_SPEED))
+    
+    #ifdef ESP8266
+        if (!SD.begin(16, SPI_SPEED))
+    #else
+        if (!SD.begin())
+    #endif
     {
         Serial.println("initialization failed!");
         filelist = "[]";
@@ -96,16 +112,27 @@ void setup()
     handleWebpage->setCallBackPlaySound(handleAudio->playSound);
     handleWebpage->setCallBackStopSound(handleAudio->stopSound);
     handleWebpage->setCallBackSetMaxGain(handleAudio->setMaxGain);
-    
-    handleWebpage->setupHandleWebpage();
 
     WiFi.mode(WIFI_AP);
-    WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    WiFi.softAP("ESPSoundPlayer");
+
+    bool apConfigOk = WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
+    bool apStartOk = WiFi.softAP("ESPSoundPlayerESP32");
+
+    Serial.printf("softAPConfig: %s\n", apConfigOk ? "OK" : "FAILED");
+    Serial.printf("softAP start: %s\n", apStartOk ? "OK" : "FAILED");
+    if (apStartOk)
+    {
+        Serial.print("AP IP: ");
+        Serial.println(WiFi.softAPIP());
+    }
 
     // if DNSServer is started with "*" for domain name, it will reply with
     // provided IP to all DNS request
-    dnsServer.start(DNS_PORT, "*", apIP);
+    if (!dnsServer.start(DNS_PORT, "*", apIP))
+    {
+        Serial.println("Warning: DNS server failed to start");
+    }
+    handleWebpage->setupHandleWebpage();
 }
 
 void loop()
@@ -132,4 +159,6 @@ void loop()
         }
         
     }
+    // Serial.println("Loop...");
+    // delay(3000);
 }

@@ -2,11 +2,20 @@
 #include "handleWebpage.h"
 #include "Config.h"
 
-ESP8266WebServer* HandleWebpage::_webServer = nullptr;
+#ifdef ESP32
+    WebServer* HandleWebpage::_webServer = nullptr;
+#else
+  ESP8266WebServer* HandleWebpage::_webServer = nullptr;
+#endif
 
 HandleWebpage::HandleWebpage(String filelist)
 {
-  _webServer = new ESP8266WebServer(80);
+  
+  #ifdef ESP32
+      _webServer = new WebServer(80);
+  #else
+      _webServer = new ESP8266WebServer(80);
+  #endif
   _filelist = filelist;
 };
 
@@ -46,8 +55,8 @@ void HandleWebpage::handleSaveData()
 {
   String jsonSaveData = _webServer->arg("plain");
   Serial.printf("handleSaveData: %s\n", jsonSaveData.c_str());
-  File file = SD.open(CONFIG_FILE_NAME,  (O_WRONLY | O_CREAT));
-  file.write(jsonSaveData.c_str());
+  File file = SD.open(CONFIG_FILE_NAME,  FILE_WRITE);
+  file.print(jsonSaveData.c_str());
   file.close();
 }
 
