@@ -1,15 +1,120 @@
 
 #include "handleAudio.h"
 
+#include <SD.h>
+#include <ctype.h>
+
+namespace {
+const char *AUDIO_PINOUT_CONFIG_FILE_NAME = "audioPinoutConfig.json";
+
+bool tryReadIntFromJson(const String &json, const char *key, int &value)
+{
+    String token = "\"" + String(key) + "\"";
+    int keyPos = json.indexOf(token);
+    if (keyPos < 0)
+    {
+        return false;
+    }
+
+    int colonPos = json.indexOf(':', keyPos + token.length());
+    if (colonPos < 0)
+    {
+        return false;
+    }
+
+    int valuePos = colonPos + 1;
+    while (valuePos < json.length() && isspace(json.charAt(valuePos)))
+    {
+        valuePos++;
+    }
+
+    if (valuePos < json.length() && json.charAt(valuePos) == '"')
+    {
+        valuePos++;
+    }
+
+    int endPos = valuePos;
+    if (endPos < json.length() && (json.charAt(endPos) == '-' || json.charAt(endPos) == '+'))
+    {
+        endPos++;
+    }
+
+    bool hasDigit = false;
+    while (endPos < json.length() && isdigit(json.charAt(endPos)))
+    {
+        hasDigit = true;
+        endPos++;
+    }
+
+    if (!hasDigit)
+    {
+        return false;
+    }
+
+    value = json.substring(valuePos, endPos).toInt();
+    return true;
+}
+
+void applyConfiguredPinout(AudioOutputI2S *out)
+{
+#ifdef ESP32
+    if (!SD.exists(AUDIO_PINOUT_CONFIG_FILE_NAME))
+    {
+        Serial.println("No config file found: skip AudioOutputI2S.SetPinout");
+        return;
+    }
+
+    File configFile = SD.open(AUDIO_PINOUT_CONFIG_FILE_NAME, FILE_READ);
+    if (!configFile)
+    {
+        Serial.println("Could not open config file: skip AudioOutputI2S.SetPinout");
+        return;
+    }
+
+    String configJson = configFile.readString();
+    configFile.close();
+
+    int bclk = 0;
+    int wclk = 0;
+    int dout = 0;
+
+    // Supported keys: i2sBclk/i2sLrc/i2sDout or bclk/wclk/dout.
+    bool hasPinout =
+        tryReadIntFromJson(configJson, "i2sBclk", bclk) &&
+        tryReadIntFromJson(configJson, "i2sLrc", wclk) &&
+        tryReadIntFromJson(configJson, "i2sDout", dout);
+
+    if (!hasPinout)
+    {
+        hasPinout =
+            tryReadIntFromJson(configJson, "bclk", bclk) &&
+            tryReadIntFromJson(configJson, "wclk", wclk) &&
+            tryReadIntFromJson(configJson, "dout", dout);
+    }
+
+    if (!hasPinout)
+    {
+        Serial.println("No I2S pinout in config: skip AudioOutputI2S.SetPinout");
+        return;
+    }
+
+    Serial.printf(
+        "AudioOutputI2S.SetPinout %d (bclk=%d, wclk=%d, dout=%d)\n",
+        out->SetPinout(bclk, wclk, dout),
+        bclk,
+        wclk,
+        dout);
+#endif
+}
+} // namespace
+
 HandleAudio::HandleAudio()
 {
     _soundIsPlaying = false;
     audioLogger = &Serial;
    
     _out = new AudioOutputI2S();
-    // #ifdef ESP32
-    // Serial.printf("AudioOutputI2S.SetPinout %d\n", _out->SetPinout(1, 0, 2));
-    // #endif
+    applyConfiguredPinout(_out);
 
     _audioGen = new AudioGeneratorMP3();
     _source = new AudioFileSourceSD();
