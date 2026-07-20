@@ -152,9 +152,7 @@ void HandleWebpage::handleGetData() {
   
   String dataJson = "{\"config\":" + configJson + ", \"files\":" + _filelist + "}";
 
-  _webServer->send(200, "text/plane", dataJson);
-
-
+  _webServer->send(200, "text/plain", dataJson);
 }
 
 void HandleWebpage::handleWebRequests(){

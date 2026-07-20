@@ -17,7 +17,8 @@ class HandleLedRing
     uint32_t _lastUpdate;
     float _visualLevel;
 
-    uint32_t colorFromPosition(float position) const;
+    uint32_t colorFromAudioLevel(float level) const;
+    uint8_t brightnessFromAudioLevel(float level) const;
 };
 
 #endif // HANDLE_LED_RING_H_INCLUDED

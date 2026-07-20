@@ -17,21 +17,30 @@ void HandleLedRing::begin()
     _strip.show();
 }
 
-uint32_t HandleLedRing::colorFromPosition(float position) const
+uint32_t HandleLedRing::colorFromAudioLevel(float level) const
 {
-    if (position < 0.0f)
+    if (level < 0.0f)
     {
-        position = 0.0f;
+        level = 0.0f;
     }
-    if (position > 1.0f)
+    if (level > 1.0f)
     {
-        position = 1.0f;
+        level = 1.0f;
     }
 
-    // Gradient from green to red.
-    uint8_t red = static_cast<uint8_t>(position * 255.0f);
-    uint8_t green = static_cast<uint8_t>((1.0f - position) * 255.0f);
-    return _strip.Color(red, green, 0);
+    // Map low levels to blue/cyan and high levels to warm colors.
+    uint8_t red = static_cast<uint8_t>(constrain((level - 0.25f) * 340.0f, 0.0f, 255.0f));
+    uint8_t green = static_cast<uint8_t>(constrain((1.0f - fabsf(level - 0.5f) * 2.0f) * 255.0f, 0.0f, 255.0f));
+    uint8_t blue = static_cast<uint8_t>(constrain((1.0f - level) * 255.0f, 0.0f, 255.0f));
+    return _strip.Color(red, green, blue);
+}
+
+uint8_t HandleLedRing::brightnessFromAudioLevel(float level) const
+{
+    level = constrain(level, 0.0f, 1.0f);
+    const uint8_t minBrightness = 24;
+    const uint8_t maxBrightness = 255;
+    return static_cast<uint8_t>(minBrightness + (maxBrightness - minBrightness) * level);
 }
 
 void HandleLedRing::updateFromAudioLevel(float level, bool isSoundPlaying)
@@ -62,19 +71,13 @@ void HandleLedRing::updateFromAudioLevel(float level, bool isSoundPlaying)
     }
 
     _visualLevel = constrain(_visualLevel, 0.0f, 1.0f);
-    int activeLeds = static_cast<int>(_visualLevel * _ledCount + 0.5f);
+    _strip.setBrightness(brightnessFromAudioLevel(_visualLevel));
+
+    uint32_t color = colorFromAudioLevel(_visualLevel);
 
     for (uint16_t i = 0; i < _ledCount; i++)
     {
-        if (i < activeLeds)
-        {
-            float pos = _ledCount > 1 ? static_cast<float>(i) / (_ledCount - 1) : 0.0f;
-            _strip.setPixelColor(i, colorFromPosition(pos));
-        }
-        else
-        {
-            _strip.setPixelColor(i, 0);
-        }
+        _strip.setPixelColor(i, color);
     }
 
     _strip.show();
