@@ -6,9 +6,11 @@
     #include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
 #endif
 #include "handleAudio.h"
+#include "handleLedRing.h"
 #include "handleWebpage.h"
 #include "LittleFS.h"
 #include <SD.h>
+#include "Config.h"
 
 // You may need a fast SD card. Set this as high as it will work (40MHz max).
 #ifdef ESP8266
@@ -17,6 +19,7 @@
 
 //declaration of needed instances
 HandleAudio *handleAudio;
+HandleLedRing *handleLedRing;
 HandleWebpage *handleWebpage;
 
 File dir;
@@ -98,6 +101,13 @@ void setup()
 
     handleWebpage = new HandleWebpage(filelist);
     handleAudio = new HandleAudio();
+    handleLedRing = nullptr;
+
+    if (LED_RING_ENABLED)
+    {
+        handleLedRing = new HandleLedRing(LED_RING_LED_COUNT, LED_RING_PIN, LED_RING_BRIGHTNESS);
+        handleLedRing->begin();
+    }
 
     handleWebpage->setCallBackPlaySound(handleAudio->playSound);
     handleWebpage->setCallBackStopSound(handleAudio->stopSound);
@@ -126,8 +136,14 @@ void setup()
 }
 
 void loop()
-{   
-    if (!handleAudio->isSoundPlaying())
+{
+    bool soundPlaying = handleAudio->isSoundPlaying();
+    if (handleLedRing != nullptr)
+    {
+        handleLedRing->updateFromAudioLevel(handleAudio->getCurrentLevel(), soundPlaying);
+    }
+
+    if (!soundPlaying)
     {
         dnsServer.processNextRequest();
         handleWebpage->handleClient();

@@ -19,6 +19,21 @@ The price examples comes from AliExpress. You will find the hardware also on Eba
 1. Open the WLAN SSID ESPSoundPlayer
 1. After this the Web Interface will start on your mobile device
 
+## Optional: WS2812B LED ring (audio reactive)
+The project can drive a WS2812B ring that reacts to the current MP3 output level.
+
+Default settings are in `Config.h`:
+- `LED_RING_ENABLED = true`
+- `LED_RING_PIN = 5` (D1)
+- `LED_RING_LED_COUNT = 12`
+- `LED_RING_BRIGHTNESS = 64`
+
+Wiring notes:
+- Use a separate 5V supply for the LED ring.
+- Connect all grounds together (ESP8266, DAC, LED power supply).
+- Add a 330 Ohm resistor in series with the data line.
+- A logic level shifter (3.3V to 5V) is recommended for robust operation.
+
 # Circuit Diagram
 ![ESP Sound Player Breadboard](https://github.com/hredan/ESP_SoundBox/blob/main/CircuitDiagram/ESP8266_Audio_Player_Steckplatine.png)
 

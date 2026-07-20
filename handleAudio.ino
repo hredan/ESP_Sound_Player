@@ -57,7 +57,6 @@ bool tryReadIntFromJson(const String &json, const char *key, int &value)
 
 void applyConfiguredPinout(AudioOutputI2S *out)
 {
-#ifdef ESP32
     if (!SD.exists(AUDIO_PINOUT_CONFIG_FILE_NAME))
     {
         Serial.println("No config file found: skip AudioOutputI2S.SetPinout");
@@ -104,7 +103,6 @@ void applyConfiguredPinout(AudioOutputI2S *out)
         bclk,
         wclk,
         dout);
-#endif
 }
 } // namespace
 
@@ -113,9 +111,9 @@ HandleAudio::HandleAudio()
     _soundIsPlaying = false;
     audioLogger = &Serial;
    
-    _out = new AudioOutputI2S();
+    _out = new ReactiveAudioOutputI2S();
     applyConfiguredPinout(_out);
-
+    
     _audioGen = new AudioGeneratorMP3();
     _source = new AudioFileSourceSD();
 };
@@ -126,7 +124,16 @@ bool HandleAudio::_soundIsPlaying = false;
 
 AudioGeneratorMP3 * HandleAudio::_audioGen = nullptr;
 AudioFileSourceSD * HandleAudio::_source = nullptr;
-AudioOutputI2S * HandleAudio::_out = nullptr;
+ReactiveAudioOutputI2S * HandleAudio::_out = nullptr;
+
+float HandleAudio::getCurrentLevel()
+{
+    if (_out == nullptr)
+    {
+        return 0.0f;
+    }
+    return _out->getLevel();
+}
 
 void HandleAudio::setMaxGain(float maxGain)
 {
