@@ -6,6 +6,7 @@
     #include <ESP8266WiFi.h>    //https://github.com/esp8266/Arduino
 #endif
 #include "handleAudio.h"
+#include "handleEspConfig.h"
 #include "handleLedRing.h"
 #include "handleWebpage.h"
 #include "LittleFS.h"
@@ -103,9 +104,10 @@ void setup()
     handleAudio = new HandleAudio();
     handleLedRing = nullptr;
 
-    if (LED_RING_ENABLED)
+    EspLedRingConfig ledRingConfig = getLedRingConfig();
+    if (ledRingConfig.enabled)
     {
-        handleLedRing = new HandleLedRing(LED_RING_LED_COUNT, LED_RING_PIN, LED_RING_BRIGHTNESS);
+        handleLedRing = new HandleLedRing(ledRingConfig.ledCount, ledRingConfig.pin, ledRingConfig.brightness);
         handleLedRing->begin();
     }
 
@@ -115,11 +117,16 @@ void setup()
 
     WiFi.mode(WIFI_AP);
 
+    EspApConfig apConfig = getApConfig();
+
     bool apConfigOk = WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
-    bool apStartOk = WiFi.softAP("ESPSoundPlayerESP32");
+    bool apStartOk = apConfig.password.length() > 0
+        ? WiFi.softAP(apConfig.ssid.c_str(), apConfig.password.c_str())
+        : WiFi.softAP(apConfig.ssid.c_str());
 
     Serial.printf("softAPConfig: %s\n", apConfigOk ? "OK" : "FAILED");
     Serial.printf("softAP start: %s\n", apStartOk ? "OK" : "FAILED");
+    Serial.printf("softAP SSID: %s\n", apConfig.ssid.c_str());
     if (apStartOk)
     {
         Serial.print("AP IP: ");
