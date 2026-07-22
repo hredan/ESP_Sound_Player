@@ -3,10 +3,10 @@
 #else
 #include <ESP8266WiFi.h>  // https://github.com/esp8266/Arduino
 #endif
-#include "handle_audio.h"
-#include "handle_esp_config.h"
-#include "handle_led_ring.h"
-#include "handle_webpage.h"
+#include "./handle_audio.h"
+#include "./handle_esp_config.h"
+#include "./handle_led_ring.h"
+#include "./handle_webpage.h"
 #include "LittleFS.h"
 #include <SD.h>
 #include "Config.h"
