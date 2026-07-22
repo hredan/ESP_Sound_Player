@@ -3,3 +3,25 @@ on: [push, pull_request]
 jobs:
   test:
     uses: ./.github/workflows/test.yml
+  build_eep_esp32c3:
+    needs: [test]
+    uses: ./.github/workflows/build_eep.yml
+    with:
+      core: esp32
+      board: nologo_esp32c3_super_mini
+  build_eep_esp8266:
+    needs: [test]
+    uses: ./.github/workflows/build_eep.yml
+    with:
+      core: esp8266
+      board: d1_mini
+
+  build_EEF_packages:
+    runs-on: ubuntu-latest
+    needs: [build_eep_esp32, build_eep_esp8266]
+    env:
+        TARGET: win64
+    steps:
+      - uses: hredan/eef-carefree-action@main
+        with:
+          target-os: ${{env.TARGET}}
