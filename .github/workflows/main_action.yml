@@ -1,0 +1,5 @@
+name: main_action
+on: [push, pull_request]
+jobs:
+  test:
+    uses: ./.github/workflows/test.yml

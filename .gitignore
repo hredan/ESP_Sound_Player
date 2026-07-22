@@ -6,3 +6,4 @@ esp_core_info
 BIN*
 tools
 *.eep
+.venv
