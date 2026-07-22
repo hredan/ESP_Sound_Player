@@ -15,7 +15,7 @@ jobs:
     build_eep:
         runs-on: ubuntu-latest
         env:
-            SKETCH_NAME: UNIVERSAL_ESP_HELLO_WORLD
+            SKETCH_NAME: ESP_Sound_Player
         steps:
           - uses: actions/checkout@v6
           - uses: hredan/eep-build-action@switch-to-python
