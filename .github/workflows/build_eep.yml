@@ -18,7 +18,7 @@ jobs:
             SKETCH_NAME: ESP_Sound_Player
         steps:
           - uses: actions/checkout@v6
-          - uses: hredan/eep-build-action@switch-to-python
+          - uses: hredan/eep-build-action@v1.0.0
             with:
               sketch-name: ${{env.SKETCH_NAME}}
               core: ${{ inputs.core }}
