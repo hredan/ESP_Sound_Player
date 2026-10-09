@@ -46,11 +46,11 @@ void HandleWebpage::handleStopSound() {
 }
 
 void HandleWebpage::handleSaveData() {
-  String jsonSaveData = _webServer->arg("plain");
-  Serial.printf("handleSaveData: %s\n", jsonSaveData.c_str());
-  File file = SD.open(CONFIG_FILE_NAME, FILE_WRITE);
-  file.print(jsonSaveData.c_str());
-  file.close();
+  // String jsonSaveData = _webServer->arg("plain");
+  // Serial.printf("handleSaveData: %s\n", jsonSaveData.c_str());
+  // File file = SD.open(CONFIG_FILE_NAME, FILE_WRITE);
+  // file.print(jsonSaveData.c_str());
+  // file.close();
 }
 
 void HandleWebpage::handleSetMaxGain() {
@@ -116,11 +116,11 @@ void HandleWebpage::handleGetData() {
 
   String configJson = "{\"gainFactor\": 0.1, \"playList\": []}";
 
-  if (SD.exists(CONFIG_FILE_NAME)) {
-    File configFile = SD.open(CONFIG_FILE_NAME, FILE_READ);
-    configJson = configFile.readString();
-    configFile.close();
-  }
+  // if (SD.exists(CONFIG_FILE_NAME)) {
+  //   File configFile = SD.open(CONFIG_FILE_NAME, FILE_READ);
+  //   configJson = configFile.readString();
+  //   configFile.close();
+  // }
 
   String dataJson =
       "{\"config\":" + configJson + ", \"files\":" + _filelist + "}";
